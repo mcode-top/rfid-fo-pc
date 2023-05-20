@@ -27,3 +27,12 @@ export function createUniqueIdInstance() {
     }
   };
 }
+
+/**@name 计算RSSI */
+export function computeRSSI(rssi: number) {
+  if (rssi > 127) {
+    return rssi - 256;
+  } else {
+    return rssi;
+  }
+}

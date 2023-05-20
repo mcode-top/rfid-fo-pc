@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUniqueIdInstance = exports.isPort = exports.isIP = exports.tenToSixteen = void 0;
+exports.computeRSSI = exports.createUniqueIdInstance = exports.isPort = exports.isIP = exports.tenToSixteen = void 0;
 /**@name 10进制转换16进制文本 */
 function tenToSixteen(num) {
     return "0x" + num.toString(16).padStart(2, "0");
@@ -36,3 +36,13 @@ function createUniqueIdInstance() {
     };
 }
 exports.createUniqueIdInstance = createUniqueIdInstance;
+/**@name 计算RSSI */
+function computeRSSI(rssi) {
+    if (rssi > 127) {
+        return rssi - 256;
+    }
+    else {
+        return rssi;
+    }
+}
+exports.computeRSSI = computeRSSI;

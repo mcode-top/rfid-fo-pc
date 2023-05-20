@@ -1,16 +1,17 @@
 import { defineStore } from "pinia";
 import {
   CALL_DEVICE_MANAGE_METHOD_IPC,
-  CALL_DEVICE_METHOD_IPC,
   DeivceStatusEnum,
+  WATCH_DEVICE_DATA_IPC,
   WATCH_DEVICE_STATUS_IPC,
   WATCH_SYNC_DEVICE_LIST_IPC,
   type DeviceInfo,
+  type DeviceRFlyI160CheckData,
   type ScanDeviceRFlyI160UDPData,
 } from "@my/common";
 import { webAppStore } from "@/utils/store";
 import { toRaw } from "vue";
-import { myIpcSend, watchMainEvent } from "@/utils/ipc";
+import { callDeviceApi, myIpcSend, watchMainEvent } from "@/utils/ipc";
 /**@name 控制台动作 */
 type DeviceControlAction = "add" | "edit";
 export const useDeviceStore = defineStore("device", {
@@ -22,6 +23,7 @@ export const useDeviceStore = defineStore("device", {
       type: undefined as DeviceControlAction | undefined,
       data: null as null | DeviceInfo,
     },
+    currentData: [] as DeviceRFlyI160CheckData[],
   }),
   getters: {
     connectedDeviceList(store) {
@@ -60,33 +62,18 @@ export const useDeviceStore = defineStore("device", {
     },
     /**@name 连接设备 */
     async connectDevice(deviceId: string) {
-      await myIpcSend(CALL_DEVICE_METHOD_IPC, deviceId, "connect");
+      await callDeviceApi(deviceId, "connect");
     },
     /**@name 断开设备 */
     async disconnectDevice(deviceId: string) {
-      await myIpcSend(CALL_DEVICE_METHOD_IPC, deviceId, "close");
+      await callDeviceApi(deviceId, "close");
     },
     setControl(action: DeviceControlAction, data: DeviceInfo | null) {
       this.currentControlInfo.type = action;
       this.currentControlInfo.data = data;
     },
+    setCurrentData(data: DeviceRFlyI160CheckData[]) {
+      this.currentData = data;
+    },
   },
 });
-const deviceStore = useDeviceStore();
-watchMainEvent(
-  WATCH_DEVICE_STATUS_IPC,
-  (deviceId: string, status: DeivceStatusEnum) => {
-    deviceStore.deviceList.forEach((device) => {
-      if (device.deviceId === deviceId) {
-        device.deviceStatus = status;
-      }
-    });
-  }
-);
-watchMainEvent(
-  WATCH_SYNC_DEVICE_LIST_IPC,
-  (deviceList: DeviceInfo[], ...args: any[]) => {
-    console.log(deviceList, args);
-    deviceStore.sycnDeviceList(deviceList);
-  }
-);

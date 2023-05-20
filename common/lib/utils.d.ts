@@ -6,3 +6,5 @@ export declare function isIP(ip: string): boolean;
 export declare function isPort(port: number): boolean;
 /**@name 创建唯一ID */
 export declare function createUniqueIdInstance(): () => number;
+/**@name 计算RSSI */
+export declare function computeRSSI(rssi: number): number;

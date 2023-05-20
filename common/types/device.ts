@@ -26,6 +26,6 @@ export enum DeivceStatusEnum {
   Error = 3,
   /**@name 未知 */
   Unknown = 4,
-  /**@name */
+  /**@name 运行中*/
   Run = 5,
 }

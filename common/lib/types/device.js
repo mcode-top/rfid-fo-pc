@@ -14,6 +14,6 @@ var DeivceStatusEnum;
     DeivceStatusEnum[DeivceStatusEnum["Error"] = 3] = "Error";
     /**@name 未知 */
     DeivceStatusEnum[DeivceStatusEnum["Unknown"] = 4] = "Unknown";
-    /**@name */
+    /**@name 运行中*/
     DeivceStatusEnum[DeivceStatusEnum["Run"] = 5] = "Run";
 })(DeivceStatusEnum = exports.DeivceStatusEnum || (exports.DeivceStatusEnum = {}));

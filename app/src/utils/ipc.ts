@@ -1,4 +1,5 @@
 import {
+  CALL_DEVICE_MANAGE_METHOD_IPC,
   createUniqueIdInstance,
   type IpcSendOptions,
   type IpcSendResult,
@@ -39,4 +40,22 @@ export function watchMainEvent(channel: string, callback: Function) {
   ipcRenderer.on(`${channel}:${ipcId}`, (event, ...args) => {
     callback(...args);
   });
+}
+
+/**@name 调用设备管理的方法 */
+export function callDeviceManageApi(apiName: string, ...args: any[]) {
+  return myIpcSend(CALL_DEVICE_MANAGE_METHOD_IPC, apiName, ...args);
+}
+
+/**@name 调用设备的方法 */
+export function callDeviceApi(
+  apiName: string,
+  deviceId: string,
+  ...args: any[]
+) {
+  return callDeviceManageApi("callDeviceApi", apiName, deviceId, ...args);
+}
+/**@name 广播调用所有设备的API */
+export function callAllDeviceAPi(apiName: string, ...args: any[]) {
+  return callDeviceManageApi("callAllDeviceApi", apiName, ...args);
 }

@@ -26,9 +26,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { RouterView, useRoute } from "vue-router";
 import { ElMenu } from "element-plus";
+import { useDeviceStore } from "./stores";
 const route = useRoute();
 </script>
 

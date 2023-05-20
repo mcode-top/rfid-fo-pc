@@ -161,3 +161,29 @@ export enum RElyI160Status {
   /**@name 故障系统未知错误 */
   FAULT_SYSTEM_UNKNOWN_ERROR = 0x9f,
 }
+/**@name 设置设备端口的UDP数据 */
+export type ScanDeviceRFlyI160UDPData = {
+  mac: string;
+  targetIp: string;
+  targetPort: number;
+  readerPort: number;
+  readerIp: string;
+  readerMask: string;
+  readerGeteway: string;
+  mode: number;
+  version?: string;
+};
+
+/**@name 设置盘点数据 */
+export interface DeviceRFlyI160CheckData {
+  /**@name 信号强度 */
+  RSSI: number;
+  /**@name 天线端口 */
+  ant: number;
+  /**@name 标签epc */
+  value: string;
+  readCount: number;
+  PC: string;
+  deviceId?: string;
+  lastReadTime?: number;
+}

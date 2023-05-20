@@ -9,7 +9,11 @@
   </div>
   <div v-else class="check full">
     <div class="check-content">
-      <el-table :data="tableData" style="width: 100%; height: 100%">
+      <el-table
+        :data="tableData"
+        row-key="value"
+        style="width: 100%; height: 100%"
+      >
         <el-table-column prop="value" label="标签值" width="280" />
         <el-table-column prop="total" sortable label="读取次数" width="120" />
         <el-table-column prop="lastReadTime" sortable label="最后读取事件" />
@@ -19,66 +23,114 @@
       <div class="title">数据信息</div>
       <ElDescriptions :column="2">
         <ElDescriptionsItem label="标签数">
-          <div class="description-item">1</div>
+          <div class="description-item">{{ tableData.length }}</div>
         </ElDescriptionsItem>
         <ElDescriptionsItem label="盘点耗时">
-          <div class="description-item">00:12:00</div>
+          <div class="description-item">{{ currentTime }}</div>
         </ElDescriptionsItem>
       </ElDescriptions>
       <div class="title">盘点</div>
       <div class="control-item">
-        <ElButton type="primary" class="control-btn">开始盘点</ElButton>
+        <ElButton type="primary" class="control-btn" @click="handleStartCheck"
+          >开始盘点</ElButton
+        >
       </div>
       <div class="control-item">
-        <ElButton class="control-btn">停止盘点</ElButton>
+        <ElButton class="control-btn" @click="handleStopCheck"
+          >停止盘点</ElButton
+        >
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
 import { useDeviceStore } from "@/stores";
-import { ref } from "vue";
+import { myIpcSend } from "@/utils/ipc";
+import {
+  CALL_DEVICE_MANAGE_METHOD_IPC,
+  type DeviceInfo,
+  type DeviceRFlyI160CheckData,
+} from "@my/common";
+import { computed, ref, watch } from "vue";
+import dayjs from "dayjs";
 const deviceStore = useDeviceStore();
-const tableData = ref([
-  {
-    value: "00000000000000000C47C66A",
-    lastReadTime: "2018-12-03 14:12:00",
-    total: 50,
-    readDevice: [
-      {
-        deviceId: "ABC",
-        deviceName: "左大门",
-        RSSI: -50,
-        count: 10,
-      },
-      {
-        deviceId: "AVB",
-        deviceName: "右大门",
-        RSSI: -30,
-        count: 40,
-      },
-    ],
+type TableData = {
+  value: string;
+  lastReadTime: string;
+  total: number;
+  readDevice: (DeviceInfo & DeviceRFlyI160CheckData)[];
+};
+const tableData = ref<TableData[]>([]);
+watch(
+  () => deviceStore.currentData,
+  (newVal) => {
+    tableData.value = newVal.reduce<TableData[]>((prve, next) => {
+      // 检查这个标签是否已经存在
+      const find = prve.find((item) => item.value === next.value);
+      const currentDevice = deviceStore.findDevice(next.deviceId!);
+      if (!find) {
+        prve.push({
+          value: next.value,
+          lastReadTime: dayjs(next.lastReadTime).format("YYYY-MM-DD HH:mm:ss"),
+          total: next.readCount,
+          readDevice: [
+            {
+              ...currentDevice!,
+              ...next,
+            },
+          ],
+        });
+      } else {
+        find.total += next.readCount;
+        find.readDevice.push({
+          ...currentDevice!,
+          ...next,
+        });
+      }
+      return prve;
+    }, []);
   },
   {
-    value: "A1CD0000000000000C47C000",
-    lastReadTime: "2018-12-02 14:12:00",
-    total: 30,
-    readDevice: [
-      {
-        deviceId: "AQQ",
-        deviceName: "中大门",
-        RSSI: -40,
-        count: 20,
-      },
-      {
-        deviceId: "AVB",
-        deviceName: "右大门",
-        RSSI: -70,
-        count: 10,
-      },
-    ],
-  },
-]);
+    immediate: true,
+  }
+);
+const startDate = ref(new Date().getTime());
+const nowDate = ref(new Date().getTime());
+let timer = 0;
+async function handleStartCheck() {
+  console.log("开始盘点");
+  await myIpcSend(
+    CALL_DEVICE_MANAGE_METHOD_IPC,
+    "callAllDeviceApi",
+    "startCheck"
+  );
+  startDate.value = new Date().getTime();
+  nowDate.value = new Date().getTime();
+  setInterval(() => {
+    nowDate.value = new Date().getTime();
+  }, 300);
+}
+function f(n: number) {
+  return n >= 10 ? n : "0" + n;
+}
+const currentTime = computed(() => {
+  const duration = dayjs.duration(nowDate.value - startDate.value);
+  const hours = duration.hours();
+  const minutes = duration.minutes();
+  const seconds = duration.seconds();
+
+  return `${f(hours)}:${f(minutes)}:${f(seconds)}`;
+});
+async function handleStopCheck() {
+  clearInterval(timer);
+  nowDate.value = new Date().getTime();
+  console.log("停止盘点");
+  await myIpcSend(
+    CALL_DEVICE_MANAGE_METHOD_IPC,
+    "callAllDeviceApi",
+    "stopCheck"
+  );
+}
 </script>
 
 <style lang="scss" scoped>

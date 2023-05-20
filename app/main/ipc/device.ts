@@ -1,16 +1,17 @@
 import {
   CALL_DEVICE_MANAGE_METHOD_IPC,
-  CALL_DEVICE_METHOD_IPC,
   DeivceStatusEnum,
   DeviceInfo,
   DEVICE_SCAN_IPC,
   DEVICE_SETTING_BASE_IPC,
   ScanDeviceRFlyI160UDPData,
+  WATCH_DEVICE_DATA_IPC,
   WATCH_DEVICE_STATUS_IPC,
   WATCH_SYNC_DEVICE_LIST_IPC,
 } from "@my/common";
 import { ipcMain } from "electron";
-import { callDeviceApi, deviceManage } from "~/device";
+import { throttle } from "lodash";
+import { deviceManage } from "~/device";
 import { scanRFlyI160, settingBaseRFlyI160 } from "~/device/RFly-I160/helper";
 import { myIpcListener, openMainEventIpc } from "~/utils";
 
@@ -23,13 +24,8 @@ myIpcListener(
     return await settingBaseRFlyI160(data);
   }
 );
-myIpcListener(
-  CALL_DEVICE_METHOD_IPC,
-  (deviceId: string, apiName: string, ...args) => {
-    return callDeviceApi(deviceId, apiName, ...args);
-  }
-);
 myIpcListener(CALL_DEVICE_MANAGE_METHOD_IPC, (apiName: string, ...args) => {
+  //   console.log(apiName, args,"apiName, args"");
   return deviceManage[apiName](...args);
 });
 
@@ -47,5 +43,21 @@ openMainEventIpc(WATCH_SYNC_DEVICE_LIST_IPC, (send) => {
     (deviceList: DeviceInfo[]) => {
       send(deviceList);
     }
+  );
+});
+openMainEventIpc(WATCH_DEVICE_DATA_IPC, (send) => {
+  deviceManage.addListener(
+    WATCH_DEVICE_DATA_IPC,
+    // 由于数据量过大且很快，所以需要节流
+    throttle(
+      (data: any) => {
+        send(data);
+      },
+      300,
+      {
+        leading: true,
+        trailing: true,
+      }
+    )
   );
 });
