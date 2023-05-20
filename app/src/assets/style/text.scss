@@ -1,0 +1,20 @@
+@use "@/assets/style/color" as *;
+
+.text-success {
+  color: $color-green-5;
+}
+.text-danger {
+  color: $color-red-4;
+}
+.text-warning {
+  color: $color-orange-3;
+}
+.text-info {
+  color: $color-blue-5;
+}
+.text-primary {
+  color: $color-blue-5;
+}
+.text-default {
+  color: $color-block-4;
+}

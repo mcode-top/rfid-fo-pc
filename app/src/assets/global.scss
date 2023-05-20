@@ -1,0 +1,80 @@
+// 导入text.scss文件中的所有变量和函数
+@use "@/assets/style/text.scss" as *;
+@use "@/assets/style/color.scss" as *;
+// 存放全局变量
+$m-lg-font-size: 20px;
+div {
+  box-sizing: border-box;
+}
+
+.flex-middle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.full {
+  width: 100%;
+  height: 100%;
+}
+.border-top {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+.border-bottom {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.border-left {
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+.border-right {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+/**自定义滚动条样式*/
+@mixin custom-scrollbar(
+  $width,
+  $background-color,
+  $thumb-color,
+  $thumb-hover-color,
+  $thumb-border-radius
+) {
+  /* 定义滚动条的宽度和颜色 */
+  &::-webkit-scrollbar {
+    width: $width;
+    background-color: $background-color;
+  }
+  &::-moz-scrollbar {
+    width: $width;
+    background-color: $background-color;
+  }
+  &::-ms-scrollbar {
+    width: $width;
+    background-color: $background-color;
+  }
+
+  /* 定义滚动条滑块的颜色和形状 */
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: $thumb-border-radius;
+  }
+  &::-moz-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: $thumb-border-radius;
+  }
+  &::-ms-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: $thumb-border-radius;
+  }
+
+  /* 鼠标悬停在滚动条上时，定义滑块的颜色和形状 */
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: $thumb-hover-color;
+  }
+  &::-moz-scrollbar-thumb:hover {
+    background-color: $thumb-hover-color;
+  }
+  &::-ms-scrollbar-thumb:hover {
+    background-color: $thumb-hover-color;
+  }
+}
+.default-scrollbar {
+  @include custom-scrollbar(6px, #f1f1f1, #a9a9a9, rgba(0, 0, 0, 0.5), 10px);
+}

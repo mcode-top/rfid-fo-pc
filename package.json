@@ -1,0 +1,19 @@
+{
+    "name": "rfid-reader-pc",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "dev": "chcp 65001 & concurrently \"pnpm run --dir app dev\" \"pnpm run --dir common dev\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "concurrently": "^8.0.1",
+        "tslib": "^2.5.0",
+        "typescript": "^4.8.4"
+    },
+    "devDependencies": {
+        "@vue/runtime-core": "^3.3.2"
+    }
+}
