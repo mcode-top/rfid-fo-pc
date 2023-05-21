@@ -251,3 +251,14 @@ getIPV4ForHostname().then((addresses) => {
   );
 });
 // scanRFlyI160().then(console.log);
+function hexToUnit8Array(hex) {
+  return new Uint8Array(
+    hex
+      .match(/[\da-f]{2}/gi)
+      .map((h) => parseInt(h, 16))
+      .filter((v) => !isNaN(v))
+  );
+}
+console.log("====================================");
+console.log(hexToUnit8Array("111214"));
+console.log("====================================");

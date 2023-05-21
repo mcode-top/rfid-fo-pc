@@ -1,5 +1,5 @@
 /**@name 标签应用指令码 */
-export declare enum RElyI160Code {
+export declare enum RFlyI160Code {
     /**@name 单次盘点标签 */
     SingleInventory = 1,
     /**@name 时间段盘点标签 */
@@ -66,7 +66,7 @@ export declare enum RElyI160Code {
     GetSN = 145
 }
 /**@name 标签应用返回的状态码 */
-export declare enum RElyI160Status {
+export declare enum RFlyI160Status {
     /**@name 成功 */
     STATUS_SUCCESS_CODE = 0,
     /**@name 发送数据太大 */
@@ -184,4 +184,10 @@ export interface DeviceRFlyI160CheckData {
     PC: string;
     deviceId?: string;
     lastReadTime?: number;
+}
+/**@name 设备选择区域 */
+export declare enum RFlyI160SelectAreaEnum {
+    EPC = 1,
+    TID = 2,
+    USER = 3
 }

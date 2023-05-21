@@ -1,12 +1,13 @@
 import net from "node:net";
 import {
   tenToSixteen,
-  RElyI160Code,
-  RElyI160Status,
+  RFlyI160Code,
+  RFlyI160Status,
   DEVICE_SETTING_BASE_IPC,
   DeivceStatusEnum,
   computeRSSI,
   DeviceRFlyI160CheckData,
+  RFlyI160SelectAreaEnum,
 } from "@my/common";
 import { myIpcListener } from "~/utils";
 import { EventEmitter } from "node:stream";
@@ -70,6 +71,7 @@ export class DeviceRFlyI160 {
       });
       client.addListener("error", (err) => {
         this.status = DeivceStatusEnum.Error;
+        reject(err);
         console.error(
           "RFlyI160",
           `${this.options.host}:${this.options.port} Error`,
@@ -82,16 +84,19 @@ export class DeviceRFlyI160 {
           "RFlyI160",
           `${this.options.host}:${this.options.port} Timeout`
         );
-        reject(false);
+        reject(new Error("device connect timeout"));
       });
       this.client = client;
     });
   }
   /**@name 发送数据 */
-  send(code: RElyI160Code, data: Uint8Array = new Uint8Array()) {
+  send(code: RFlyI160Code, data: Uint8Array = new Uint8Array()) {
     if (data.length > 249) {
       throw new Error("data length must less than 249");
     }
+    console.log("====================================");
+    console.log(data.buffer, "data.buffer");
+    console.log("====================================");
     const writeData = Buffer.from([
       // 数据长度
       data.length,
@@ -132,7 +137,7 @@ export class DeviceRFlyI160 {
         tag1 === 0xbb &&
         tag2 === 0xdd
       ) {
-        if (RElyI160Status.STATUS_SUCCESS_CODE === status) {
+        if (RFlyI160Status.STATUS_SUCCESS_CODE === status) {
           if (process.env.NODE_ENV === "development") {
             console.log(
               "send success",
@@ -143,21 +148,21 @@ export class DeviceRFlyI160 {
             );
           }
         } else {
-          console.warn("send fail", "status code:", RElyI160Status[status]);
+          console.warn("send fail", "status code:", RFlyI160Status[status]);
         }
         this.client.emit(
           "data:" + code,
-          RElyI160Status.STATUS_SUCCESS_CODE === status
+          RFlyI160Status.STATUS_SUCCESS_CODE === status
             ? undefined
-            : RElyI160Status[status],
+            : RFlyI160Status[status],
           returnData,
           code
         );
         this.client.emit(
           "data:all",
-          RElyI160Status.STATUS_SUCCESS_CODE === status
+          RFlyI160Status.STATUS_SUCCESS_CODE === status
             ? undefined
-            : RElyI160Status[status],
+            : RFlyI160Status[status],
           returnData,
           code
         );
@@ -171,7 +176,7 @@ export class DeviceRFlyI160 {
   }
   /**@name 发送数据 */
   dataListener(
-    code: RElyI160Code | "all",
+    code: RFlyI160Code | "all",
     handler: (err: undefined | string, data: Uint8Array, code: number) => void
   ) {
     this.client.addListener("data:" + code, handler);
@@ -180,7 +185,7 @@ export class DeviceRFlyI160 {
     };
   }
   dataListenerOnce(
-    code: RElyI160Code | "all",
+    code: RFlyI160Code | "all",
     handler: (err: undefined | string, data: Uint8Array, code: number) => void
   ) {
     const result = this.dataListener(code, (...args) => {
@@ -219,45 +224,62 @@ export class DeviceRFlyI160 {
   /**@name 当前盘点监听 */
   currentCheckListener: any = null;
   /**@name 开始盘点,让设备持续进入扫描状态 */
-  startCheck() {
-    if (this.checkStatus) {
-      throw new Error("device is already start check");
-    }
-    this.checkStatus = true;
-    const sendData = new DataView(new ArrayBuffer(2));
-    sendData.setInt16(0, 0);
-
-    this.send(
-      RElyI160Code.ContinuousInventory,
-      new Uint8Array(sendData.buffer)
-    );
-    this.dataListenerOnce(RElyI160Code.ContinuousInventory, (err) => {
-      if (err) {
-        return console.error("start check error", err);
+  startCheck(
+    selectArea: RFlyI160SelectAreaEnum = RFlyI160SelectAreaEnum.EPC,
+    matchTag: string = ""
+  ) {
+    return new Promise((resolve, reject) => {
+      if (this.checkStatus) {
+        return reject(new Error("device is already start check"));
       }
-      this.currentCheckListener = this.dataListener(
-        RElyI160Code.SingleInventory,
-        (err, data) => {
-          if (err) {
-            return console.error("listener check error", err);
-          } else {
-            const [count] = data.slice(0, 1);
-            const [RSSI] = data.slice(1, 2);
-            const [ant] = data.slice(2, 3);
-            const pc = data.slice(3, 5);
-            const valueLength = (pc[0] >> 3) * 2;
-            const EPC = data.slice(5, valueLength + 5);
-            this.event.emit("data", {
-              RSSI: computeRSSI(RSSI),
-              ant,
-              value: unit8ArrayToHex(EPC),
-              readCount: count,
-              PC: unit8ArrayToHex(pc),
-              lastReadTime: new Date().getTime(),
-            });
-          }
+      const bufMatchTag = hexToUnit8Array(matchTag);
+      const sendData = new DataView(new ArrayBuffer(8));
+      sendData.setInt16(0, 0);
+      sendData.setInt8(2, selectArea);
+      sendData.setInt32(3, 0x20);
+      sendData.setInt8(7, bufMatchTag.length * 8);
+      // 如果匹配标签长度为0,则不做选择性盘点,同时selectArea字段也是无效
+      const filterData =
+        matchTag.length === 0
+          ? new Uint8Array([0, 0])
+          : new Uint8Array([
+              ...new Uint8Array(sendData.buffer),
+              ...bufMatchTag,
+            ]);
+      const result = this.send(RFlyI160Code.ContinuousInventory, filterData);
+      if (!result) {
+        return reject(new Error("send data error"));
+      }
+      this.dataListenerOnce(RFlyI160Code.ContinuousInventory, (err) => {
+        if (err) {
+          return reject(new Error("start check error" + err));
         }
-      );
+        this.checkStatus = true;
+        resolve(true);
+        this.currentCheckListener = this.dataListener(
+          RFlyI160Code.SingleInventory,
+          (err, data) => {
+            if (err) {
+              return reject(new Error("listener check error" + err));
+            } else {
+              const [count] = data.slice(0, 1);
+              const [RSSI] = data.slice(1, 2);
+              const [ant] = data.slice(2, 3);
+              const pc = data.slice(3, 5);
+              const valueLength = (pc[0] >> 3) * 2;
+              const EPC = data.slice(5, valueLength + 5);
+              this.event.emit("data", {
+                RSSI: computeRSSI(RSSI),
+                ant,
+                value: unit8ArrayToHex(EPC),
+                readCount: count,
+                PC: unit8ArrayToHex(pc),
+                lastReadTime: new Date().getTime(),
+              });
+            }
+          }
+        );
+      });
     });
   }
   /**@name 停止盘点,关闭设备的扫描状态 */
@@ -268,14 +290,14 @@ export class DeviceRFlyI160 {
       }
       const sendData = new DataView(new ArrayBuffer(2));
       sendData.setInt16(0, 0);
-      this.dataListenerOnce(RElyI160Code.StopContinuousInventory, (err) => {
+      this.dataListenerOnce(RFlyI160Code.StopContinuousInventory, (err) => {
         if (err) {
           reject(err);
         }
         resolve(true);
       });
       this.send(
-        RElyI160Code.StopContinuousInventory,
+        RFlyI160Code.StopContinuousInventory,
         new Uint8Array(sendData.buffer)
       );
       setTimeout(() => {
@@ -283,9 +305,9 @@ export class DeviceRFlyI160 {
       }, 5000);
     }).then(() => {
       // 关闭监听
-      this.currentCheckListener();
       this.checkStatus = false;
       this.event.emit("data-end");
+      this.currentCheckListener?.();
     });
   }
 }
@@ -293,5 +315,18 @@ export class DeviceRFlyI160 {
 function unit8ArrayToHex(unit8Array: Uint8Array) {
   return Array.from(unit8Array, (v) => v.toString(16).padStart(2, "0")).join(
     ""
+  );
+}
+
+// hex to unit8
+function hexToUnit8Array(hex: string) {
+  if (!hex) {
+    return new Uint8Array([]);
+  }
+  return new Uint8Array(
+    hex
+      .match(/[\da-f]{2}/gi)
+      .map((h) => parseInt(h, 16))
+      .filter((v) => !isNaN(v))
   );
 }

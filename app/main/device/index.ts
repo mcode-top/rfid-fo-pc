@@ -104,7 +104,7 @@ class DeviceManage extends EventEmitter {
     });
   }
   /**@name 调用设备的API */
-  callDeviceApi(
+  async callDeviceApi(
     deviceId: string | DeviceInfo,
     apiName: string,
     ...args: any[]
@@ -116,10 +116,18 @@ class DeviceManage extends EventEmitter {
       device = deviceId;
     }
     if (!device) {
-      return Promise.reject("设备不存在");
+      throw new Error("not find device");
     }
     if (typeof device.instance[apiName] === "function") {
-      return (device.instance[apiName] as any)(...args);
+      try {
+        return await (device.instance[apiName] as any)(...args);
+      } catch (error) {
+        throw new Error(
+          `callDeviceApi function deviceId:${deviceId} in ${apiName} \n ${
+            error.message
+          } \n args:${args.map((item) => item.toString() + "\n")}`
+        );
+      }
     }
   }
   /**@name 广播调用所有设备的API */

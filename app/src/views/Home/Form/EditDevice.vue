@@ -63,6 +63,15 @@
       </ElButton>
     </ElTooltip>
   </div>
+  <div>
+    <ElButton
+      type="danger"
+      class="btn-confirm"
+      @click="handleRemove"
+      :loading="submitLoading"
+      >删除设备
+    </ElButton>
+  </div>
 </template>
 <script setup lang="ts">
 import {
@@ -78,7 +87,7 @@ import {
   ElMessage,
   type FormItemRule,
 } from "element-plus";
-import { ref } from "vue";
+import { ref, toRaw } from "vue";
 import { watch } from "vue";
 import { clone } from "lodash";
 import type { Arrayable } from "element-plus/es/utils";
@@ -127,7 +136,12 @@ async function handleSubmit() {
       targetIp: "0.0.0.0",
       targetPort: 20108,
     } as ScanDeviceRFlyI160UDPData);
-    deviceStore.editDevice(formData.value);
+    await deviceStore.editDevice(toRaw(formData.value));
+    // 由于数据被覆盖,所以需要关联一下
+    deviceStore.setControl(
+      "edit",
+      deviceStore.findDevice(formData.value.deviceId)!
+    );
   } catch (error) {
     console.error(error);
   } finally {
@@ -154,6 +168,30 @@ async function handleDisconnect() {
   submitLoading.value = true;
   try {
     await deviceStore.disconnectDevice(
+      deviceStore.currentControlInfo.data!.deviceId
+    );
+  } catch (error: any) {
+    console.error(error);
+    ElMessage.error(error.message);
+  } finally {
+    submitLoading.value = false;
+  }
+}
+async function handleRemove() {
+  if (
+    !(
+      deviceStore.currentControlInfo.data?.deviceStatus ===
+        DeivceStatusEnum.Disconnected ||
+      deviceStore.currentControlInfo.data?.deviceStatus ===
+        DeivceStatusEnum.Unknown
+    )
+  ) {
+    ElMessage.error("请先断开设备,再进行删除!");
+    return;
+  }
+  submitLoading.value = true;
+  try {
+    await deviceStore.removeDevice(
       deviceStore.currentControlInfo.data!.deviceId
     );
   } catch (error: any) {

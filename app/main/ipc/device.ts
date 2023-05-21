@@ -24,10 +24,13 @@ myIpcListener(
     return await settingBaseRFlyI160(data);
   }
 );
-myIpcListener(CALL_DEVICE_MANAGE_METHOD_IPC, (apiName: string, ...args) => {
-  //   console.log(apiName, args,"apiName, args"");
-  return deviceManage[apiName](...args);
-});
+myIpcListener(
+  CALL_DEVICE_MANAGE_METHOD_IPC,
+  async (apiName: string, ...args) => {
+    //   console.log(apiName, args,"apiName, args"");
+    return await deviceManage[apiName](...args);
+  }
+);
 
 openMainEventIpc(WATCH_DEVICE_STATUS_IPC, (send) => {
   deviceManage.addListener(

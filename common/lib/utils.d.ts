@@ -8,3 +8,5 @@ export declare function isPort(port: number): boolean;
 export declare function createUniqueIdInstance(): () => number;
 /**@name 计算RSSI */
 export declare function computeRSSI(rssi: number): number;
+/**@name 是否为hex */
+export declare function isHex(hex: string): boolean;

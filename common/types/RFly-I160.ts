@@ -1,5 +1,5 @@
 /**@name 标签应用指令码 */
-export enum RElyI160Code {
+export enum RFlyI160Code {
   /**@name 单次盘点标签 */
   SingleInventory = 0x01,
   /**@name 时间段盘点标签 */
@@ -67,7 +67,7 @@ export enum RElyI160Code {
 }
 
 /**@name 标签应用返回的状态码 */
-export enum RElyI160Status {
+export enum RFlyI160Status {
   /**@name 成功 */
   STATUS_SUCCESS_CODE = 0x00,
   /**@name 发送数据太大 */
@@ -186,4 +186,10 @@ export interface DeviceRFlyI160CheckData {
   PC: string;
   deviceId?: string;
   lastReadTime?: number;
+}
+/**@name 设备选择区域 */
+export enum RFlyI160SelectAreaEnum {
+  EPC = 0x01,
+  TID = 0x02,
+  USER = 0x03,
 }

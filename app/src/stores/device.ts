@@ -62,7 +62,7 @@ export const useDeviceStore = defineStore("device", {
     },
     /**@name 连接设备 */
     async connectDevice(deviceId: string) {
-      await callDeviceApi(deviceId, "connect");
+      return await callDeviceApi(deviceId, "connect");
     },
     /**@name 断开设备 */
     async disconnectDevice(deviceId: string) {

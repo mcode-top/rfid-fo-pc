@@ -7,7 +7,6 @@ import renderer from "vite-plugin-electron-renderer";
 import pkg from "./package.json";
 import alias from "@rollup/plugin-alias";
 import svgLoader from "vite-svg-loader";
-import { exposeElectronTRPC } from "electron-trpc/main";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {

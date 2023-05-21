@@ -36,3 +36,8 @@ export function computeRSSI(rssi: number) {
     return rssi;
   }
 }
+
+/**@name 是否为hex */
+export function isHex(hex: string) {
+  return /^[\da-f]+$/i.test(hex);
+}

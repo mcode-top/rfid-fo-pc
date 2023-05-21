@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.computeRSSI = exports.createUniqueIdInstance = exports.isPort = exports.isIP = exports.tenToSixteen = void 0;
+exports.isHex = exports.computeRSSI = exports.createUniqueIdInstance = exports.isPort = exports.isIP = exports.tenToSixteen = void 0;
 /**@name 10进制转换16进制文本 */
 function tenToSixteen(num) {
     return "0x" + num.toString(16).padStart(2, "0");
@@ -46,3 +46,8 @@ function computeRSSI(rssi) {
     }
 }
 exports.computeRSSI = computeRSSI;
+/**@name 是否为hex */
+function isHex(hex) {
+    return /^[\da-f]+$/i.test(hex);
+}
+exports.isHex = isHex;

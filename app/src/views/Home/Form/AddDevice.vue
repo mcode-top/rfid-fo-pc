@@ -58,7 +58,7 @@ import {
   ElInputNumber,
   type FormItemRule,
 } from "element-plus";
-import { ref } from "vue";
+import { ref, toRaw } from "vue";
 import { watch } from "vue";
 import { clone } from "lodash";
 import type { Arrayable } from "element-plus/es/utils";
@@ -95,7 +95,7 @@ async function handleSubmit() {
       targetIp: "0.0.0.0",
       targetPort: 20108,
     } as ScanDeviceRFlyI160UDPData);
-    await deviceStore.addDevice(formData.value);
+    await deviceStore.addDevice(toRaw(formData.value));
   } catch (error) {
     console.error(error);
   } finally {

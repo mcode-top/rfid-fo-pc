@@ -5,6 +5,7 @@ import {
   type IpcSendResult,
 } from "@my/common";
 import { ipcRenderer } from "electron";
+import { ElMessage } from "element-plus";
 const getPromiseIpc = createUniqueIdInstance();
 
 /**@name ipc发送消息 */
@@ -22,6 +23,7 @@ export function myIpcSend<T = any>(
         if (response.result) {
           resolve(response.data);
         } else {
+          ElMessage.error(response.msg);
           reject(new Error(response.msg));
         }
       }
@@ -43,8 +45,8 @@ export function watchMainEvent(channel: string, callback: Function) {
 }
 
 /**@name 调用设备管理的方法 */
-export function callDeviceManageApi(apiName: string, ...args: any[]) {
-  return myIpcSend(CALL_DEVICE_MANAGE_METHOD_IPC, apiName, ...args);
+export async function callDeviceManageApi(apiName: string, ...args: any[]) {
+  return await myIpcSend(CALL_DEVICE_MANAGE_METHOD_IPC, apiName, ...args);
 }
 
 /**@name 调用设备的方法 */
