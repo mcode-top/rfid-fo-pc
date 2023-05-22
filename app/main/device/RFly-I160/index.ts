@@ -79,7 +79,7 @@ export class DeviceRFlyI160 {
         );
       });
       client.addListener("timeout", () => {
-        this.status = DeivceStatusEnum.Disconnected;
+        this.status = DeivceStatusEnum.Error;
         console.log(
           "RFlyI160",
           `${this.options.host}:${this.options.port} Timeout`

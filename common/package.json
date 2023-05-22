@@ -10,8 +10,7 @@
     "keywords": [],
     "dependencies": {
         "tslib": "^2.5.0",
-        "typescript": "^4.8.4",
-        "@my/common": "workspace:^1.0.0"
+        "typescript": "^4.8.4"
     },
     "exports": {
         ".": {

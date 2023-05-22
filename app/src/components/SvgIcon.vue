@@ -8,7 +8,7 @@
 </template>
 <script setup lang="ts">
 import { defineAsyncComponent, ref, watch, computed, shallowRef } from "vue";
-
+import loadingSvg from "@/assets/icon/loading.svg";
 const props = defineProps<{
   color?: string;
   /**@description `@/assets/icon/下的文件名` */
@@ -17,7 +17,7 @@ const props = defineProps<{
   size?: number;
 }>();
 
-const svg = shallowRef(null);
+const svg = shallowRef(loadingSvg);
 watch(
   () => props.type,
   () => {
